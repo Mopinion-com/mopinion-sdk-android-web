@@ -1,12 +1,13 @@
+[![](https://jitpack.io/v/Mopinion-com/sdk-android-web.svg)](https://jitpack.io/#Mopinion-com/sdk-android-web)
+
 # Mopinion Android SDK - Web version
 The Mopinion Native Android SDK web version has been developed 100% in native Kotlin, powerful tool to collect users feedback from an Android App based on events on a webview.
 
-## <a name="release_notes">Release notes for version 1.0.3-beta</a>
+## <a name="release_notes">Release notes for version 1.0.4</a>
 Fixed bugs:
-- [MOP-4091 Fixed Android API incompatibility](https://mopinion.atlassian.net/browse/MOP-4091)
+- Certain forms were not shown.
+- Improved overall stability.
 
-Improvements:
-- [MOP-4096 Improved artefact size to less than 1 mb](https://mopinion.atlassian.net/browse/MOP-4096)
 
 
 ## <a name="install">Installation</a>
@@ -50,7 +51,7 @@ your project. The minimal required Android API is 21.
 
 ```groovy
 dependencies {
-    implementation 'com.mopinion:sdk-android-web:1.0.3-beta'
+    implementation 'com.mopinion:sdk-android-web:1.0.4'
 }
 ```
 
