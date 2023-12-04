@@ -1,7 +1,7 @@
 [![](https://jitpack.io/v/Mopinion-com/sdk-android-web.svg)](https://jitpack.io/#Mopinion-com/sdk-android-web)
 
 # Mopinion Android SDK - Web version
-The Mopinion Native Android SDK web version has been developed 100% in native Kotlin, powerful tool to collect users feedback from an Android App based on events on a webview.
+The Mopinion Android Web SDK is built in native Kotlin and uses webviews to render interface components. Looking for our SDK with native interface components? Find our latest full SDK built in native Kotlin [here](https://github.com/Mopinion-com/mopinion-sdk-android).
 
 ## <a name="release_notes">Release notes for version 1.0.4</a>
 Fixed bugs:
