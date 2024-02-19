@@ -3,8 +3,11 @@
 # Mopinion Android SDK - Web version
 The Mopinion Android Web SDK is built in native Kotlin and uses webviews to render interface components. Looking for our SDK with native interface components? Find our latest full SDK built in native Kotlin [here](https://github.com/Mopinion-com/mopinion-sdk-android).
 
-## <a name="release_notes">Release notes for version 1.0.6</a>
-- Fixed issues where Medadata injection into Webview Forms was not working.
+## <a name="release_notes">Release notes for version 1.0.7</a>
+#### What's changed
+
+- Provided a fix for crashes when the SDK was released to a Third Party Store (e.g. Amazon, Huawei...).
+- Collects the SDK version as metadata when the form is posted. 
 
 
 
@@ -49,7 +52,7 @@ your project. The minimal required Android API is 21.
 
 ```groovy
 dependencies {
-    implementation 'com.mopinion:sdk-android-web:1.0.6'
+    implementation 'com.mopinion:sdk-android-web:1.0.7'
 }
 ```
 
