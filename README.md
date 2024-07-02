@@ -3,11 +3,10 @@
 # Mopinion Android SDK - Web version
 The Mopinion Android Web SDK is built in native Kotlin and uses webviews to render interface components. Looking for our SDK with native interface components? Find our latest full SDK built in native Kotlin [here](https://github.com/Mopinion-com/mopinion-sdk-android).
 
-## <a name="release_notes">Release notes for version 1.0.7</a>
-#### What's changed
+## <a name="release_notes">Release notes for version 1.0.8</a>
+### What's changed:
 
-- Provided a fix for crashes when the SDK was released to a Third Party Store (e.g. Amazon, Huawei...).
-- Collects the SDK version as metadata when the form is posted. 
+- Tracking redirections on the Link component: users can now obtain feedback about the LinkComponent actions. 
 
 
 
@@ -52,7 +51,7 @@ your project. The minimal required Android API is 21.
 
 ```groovy
 dependencies {
-    implementation 'com.mopinion:sdk-android-web:1.0.7'
+    implementation 'com.mopinion:sdk-android-web:1.0.8'
 }
 ```
 
@@ -259,14 +258,28 @@ FormCanceled|No methods|Is emitted when the form is canceled (tapping outside of
 FormClosed|No methods|Is emitted when the form is submitted and closes automatically, or when the form logic is set to auto-close when the form is submitted. 
 Error|.message/.getMessage: String, .hasErrors/.getHasErrors(): Boolean|Is emitted when an error occurs when the form is being submitted.
 HasNotBeenShown|.reason/getReason(): Reason|Is emitted when due to circunstances that can not be determined as errors occur. This state has as constructor a Reason which gives a clear reason of why the form is not showing up.
+Redirected (Web Forms)|.redirectInfo: RedirectInfo?|Is emitted when a link in the LinkComponent has been clicked and there has been a redirection in the Web Form.
 
-As mentioned in the HasNotBeenShown State, this state contains a Reason explaining why the form did not showed up. The possible reasons by the moment are the following:
+As mentioned in the `HasNotBeenShown State`, this `state` contains a `Reason` explaining why the form did not showed up. The possible reasons by the moment are the following:
 Reason|Methods|Description
 ---|---|---
 ErrorWhileFetchingForm|.exception/.getException(): Exception|This reason is provided when fetching the form an error occurs, it contains an Exception.
 DoesNotMatchProactiveRules|No methods|This reason is provided when the form rules does not match the required criteria to be shown. 
 EventDoesNotExist|No methods|The event provided does not exist on the deployment.
 FormDoesNotExist|No methods|The form key required does not exist on backend, meaning the form key to which the GET call has been made returns an empty form. This can occur because the form has been deleted and the deployment has not been updated.
+
+As mentioned in the `Redirect State`, the `RedirectInfo` object contains the following properties:
+```kotlin
+data class RedirectInfo(
+    val event: String,
+    val formKey: String,
+    val formName: String,
+    val triggerMethod: String,
+    val url: String,
+    val redirectInfoError: String?
+)
+```
+To detect if there was an error in the redirection, you can check if the `redirectInfoError` is not null.
 
 ### Kotlin Example:
 
@@ -300,6 +313,9 @@ mopinion.event(event) { formState ->
           //do something...
           //check why the form did not shown up:
           val reasonOfWhyDidNotShowUp = formState.reason
+        }
+        is FormState.Redirect -> {
+          val redirectInfo = formState.redirectInfo
         }
     }
 }
