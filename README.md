@@ -3,10 +3,13 @@
 # Mopinion Android SDK - Web version
 The Mopinion Android Web SDK is built in native Kotlin and uses webviews to render interface components. Looking for our SDK with native interface components? Find our latest full SDK built in native Kotlin [here](https://github.com/Mopinion-com/mopinion-sdk-android).
 
-## <a name="release_notes">Release notes for version 1.0.8</a>
+## <a name="release_notes">Release notes for version 2.0.0 🎉</a>
 ### What's changed:
 
-- Tracking redirections on the Link component: users can now obtain feedback about the LinkComponent actions. 
+- Now there is only one `initialise` method.
+- Now there is only one `event` method with an optional `formStateListener` lambda.
+- Caching concurrency processes have been improved, now they are more efficient.
+- Implemented Modular Clean Architecture.
 
 
 
@@ -51,14 +54,14 @@ your project. The minimal required Android API is 21.
 
 ```groovy
 dependencies {
-    implementation 'com.mopinion:sdk-android-web:1.0.8'
+    implementation 'com.mopinion.native-android-sdk:webview-sdk:2.0.0'
 }
 ```
 
 ### Step 3:
 
-The library needs to communicate with Mopinion Servers, please make sure you have the Internet
-permission in your `AndroidManifest.xml`:
+The library needs to communicate with Mopinion Servers, please make sure you have the `Internet
+permission` in your `AndroidManifest.xml`:
 
 ```
 <?xml version="1.0" encoding="utf-8"?>
@@ -97,19 +100,20 @@ compileOptions {
 ## Kotlin
 
 - In your MainActivity.kt, Mopinion object will be initialised, it will require two values, one
-  AppCompatActivity or Activity and one String with the deployment key, as the following:
+  `Application` and one `String` with the `deployment key`, as the following:
 
 ```kotlin
-Mopinion.initialise(this, "$DEPLOYMENT_KEY", log)
+Mopinion.initialise(this.application, "DEPLOYMENT_KEY")
 ```
 
-- It will also have an optional third value which is a boolean and will activate the logging or deactivate it.
-- Once Mopinion is initialised, it is possible to instantiate Mopinion object wherever we need it, keep in mind that it's processes will be lifecycle aware, to instantiate a Mopinion object it will
-  require two values, an AppCompatActivity or FragmentActivity and a LifecycleOwner:
-- Example from Activity:
+- Once Mopinion is initialised, it is possible to instantiate Mopinion object wherever we need it,
+  keep in mind that it's processes will be lifecycle aware, to instantiate a Mopinion object it will
+  require one value, an `AppCompatActivity` or `FragmentActivity`:
+
+  Activity:
 
 ```kotlin
-import com.mopinion.mopinion_android_sdk.*
+import com.mopinion.webview_sdk.Mopinion
 
 class SomeActivity : AppCompatActivity() {
     private lateinit var mopinion: Mopinion
@@ -125,17 +129,17 @@ class SomeActivity : AppCompatActivity() {
 }
 ```
 
-- Example from Fragment:
+- Fragment:
 
 ```kotlin
-import com.mopinion.mopinion_android_sdk.*
+import com.mopinion.webview_sdk.Mopinion
 
 class SomeFragment : Fragment() {
     private lateinit var mopinion: Mopinion
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         //This can be called from onViewCreated()
-        mopinion = Mopinion(requireActivity(), viewLifecycleOwner)
+        mopinion = Mopinion(requireActivity())
         //Somewhere in the class where needed, .event can be called.
         mopinion.event("action") {
         }
@@ -143,18 +147,66 @@ class SomeFragment : Fragment() {
 }
 ```
 
+## Jetpack Compose implementation 🚀
+
+We do support `FragmentActivity` and `AppCompatActivity` which are completely compatible with Jetpack Compose and are non limiting or causing any deprecation to your project.
+
+In order to use the SDK, your `MainActivity` needs to extend either from `FragmentActivity` or `AppCompatActivity`.
+
+We do suggest the following `init` implementation as example:
+```kotlin
+class MainActivity: FragmentActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+       
+        Mopinion.initialise(this.application, "DEPLOYMENT_KEY")
+
+        setContent {
+            MyApplicationTheme(dynamicColor = false) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background,
+                ) {
+                    Navigation()
+                }
+            }
+        }
+    }
+}
+```
+
+And in order to construct the `Mopinion` object in your `Composable`, we will need either a `FragmentActivity` or an `AppCompatActivity` too.
+
+We do suggest the following `Mopinion` construction implementation:
+
+```kotlin
+@Composable
+fun MyScreen() {
+  val fragmentActivity = LocalContext.current as? FragmentActivity ?: handleException() //here you can handle the exception if the local context is not a FragmentActivity.
+  val mopinion = remember { Mopinion(fragmentActivity) }
+  Text(
+    text = "Stop guessing, start knowing!",
+    modifier = Modifier
+      .clickable {
+        mopinion.event("YourEventName")
+      }
+  )
+}
+```
+
 ## Java:
 
 - In your MainActivity.java, Mopinion object will be initialised, it will require two values, one
-  AppCompatActivity or Activity and one String form key, as the following:
+  `Application` and one `String` deployment key, as the following:
 
-```
-Mopinion.Companion.initialise(this, "@FORM_KEY");
+```java
+Mopinion.Companion.initialise(this.application, "DEPLOYMENT_KEY");
 ```
 
 - Once Mopinion is initialised, it is possible to instantiate Mopinion object wherever we need it,
-  keep in mind that it`s processes will be lifecycle aware, to instantiate a Mopinion object it will
-  require two values, an AppCompatActivity or FragmentActivity and a LifecycleOwner:
+  keep in mind that it's processes will be lifecycle aware, to instantiate a Mopinion object it will
+  require one value, an `AppCompatActivity` or `FragmentActivity`:
 - Activity:
 
 ```java
@@ -183,25 +235,35 @@ public class SomeFragment extends Fragment {
     @Override
     protected void onViewCreated(Bundle savedInstanceState) {
 
-        mopinion = new Mopinion(requireActivity(), getViewLifecycleOwner());
+        mopinion = new Mopinion(requireActivity());
         mopinion.event("action", formState -> Unit.INSTANCE);
     }
 }
 ```
 
-* The Activity will be used to extract the `applicationContext` and launch Kotlin Coroutines with
-  the correct lifecycle scope.
-* The `viewLifecycleOwner` will be used to implement the lifecycle safe coroutine launch
+* The `Activity` or `FragmentActivity` will be used to implement the lifecycle safe coroutine launch
   method `repeatOnLifecycle()`.
-* The key should be replaced with your specific deployment key. This key can be found in your
+* The `initialise` should contain your deployment key. This key can be found in your
   Mopinion account at the `Feedback forms` section under `Deployments`.
 * The `event` is a specific event that can be connected to a feedback form action in the Mopinion
   system. The default `action` event triggers the form, but an unlimited number of custom events can
   also be added.
-* `event` is a lambda function, which receives a FormState Sealed Class containing the different
+* `event` is an optional lambda function, which receives a FormState Sealed Class containing the different
   FormStates, it also contains within its data classes:
     - FormSent contains `FeedbackPostModel` object with the data that has been sent.
     - FormError contains `hasErrors: Boolean` and the `errorMessage: String`.
+
+## <a name="ignoring_proactive_rules">Ignore form rules</a>
+The function `event`, receives a mandatory `String` parameter named `eventName`. Also, receives an optional parameter named `ignoreProactiveRules` which by default is set to `false`.
+You can set `ignoreProactiveRules` to `true` to ignore all form rules and show the form.
+
+```kotlin
+  ///example:
+  mopinion.event(eventName = "myEvent", ignoreProactiveRules = true) { formState ->
+
+  }
+```
+
 
 ## <a name="extra_data">Extra data</a>
 
@@ -257,10 +319,11 @@ FormSent|.feedbackPostModel/.getFeedbackPostModel()|Is emitted once the user sub
 FormCanceled|No methods|Is emitted when the form is canceled (tapping outside of the BottomSheetDialogFragment or the back arrow). 
 FormClosed|No methods|Is emitted when the form is submitted and closes automatically, or when the form logic is set to auto-close when the form is submitted. 
 Error|.message/.getMessage: String, .hasErrors/.getHasErrors(): Boolean|Is emitted when an error occurs when the form is being submitted.
-HasNotBeenShown|.reason/getReason(): Reason|Is emitted when due to circunstances that can not be determined as errors occur. This state has as constructor a Reason which gives a clear reason of why the form is not showing up.
-Redirected (Web Forms)|.redirectInfo: RedirectInfo?|Is emitted when a link in the LinkComponent has been clicked and there has been a redirection in the Web Form.
+HasNotBeenShown|.reason/getReason(): Reason|Is emitted when due to circumstances that can not be determined as errors occur. This state has as constructor a Reason which gives a clear reason of why the form is not showing up.
+Redirected|.redirectInfo: RedirectInfo?|Emitted when a link has been clicked in the SDK, with the `LinkComponent` and the user has been redirected to a URL in the browser. The RedirectInfo contains data of that redirection such as `event: String`, `formKey: String`, `formName: String`, `triggerMethod: String`, `url: String`, `redirectInfoError: String?`
 
-As mentioned in the `HasNotBeenShown State`, this `state` contains a `Reason` explaining why the form did not showed up. The possible reasons by the moment are the following:
+
+As mentioned in the `HasNotBeenShown State`, this state contains a `Reason` explaining why the form did not showed up. The possible reasons by the moment are the following:
 Reason|Methods|Description
 ---|---|---
 ErrorWhileFetchingForm|.exception/.getException(): Exception|This reason is provided when fetching the form an error occurs, it contains an Exception.
@@ -268,18 +331,8 @@ DoesNotMatchProactiveRules|No methods|This reason is provided when the form rule
 EventDoesNotExist|No methods|The event provided does not exist on the deployment.
 FormDoesNotExist|No methods|The form key required does not exist on backend, meaning the form key to which the GET call has been made returns an empty form. This can occur because the form has been deleted and the deployment has not been updated.
 
-As mentioned in the `Redirect State`, the `RedirectInfo` object contains the following properties:
-```kotlin
-data class RedirectInfo(
-    val event: String,
-    val formKey: String,
-    val formName: String,
-    val triggerMethod: String,
-    val url: String,
-    val redirectInfoError: String?
-)
-```
-To detect if there was an error in the redirection, you can check if the `redirectInfoError` is not null.
+
+
 
 ### Kotlin Example:
 
@@ -313,9 +366,6 @@ mopinion.event(event) { formState ->
           //do something...
           //check why the form did not shown up:
           val reasonOfWhyDidNotShowUp = formState.reason
-        }
-        is FormState.Redirect -> {
-          val redirectInfo = formState.redirectInfo
         }
     }
 }
